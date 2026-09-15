@@ -20,3 +20,20 @@ management:
     health:
       probes:
         enabled: true
+
+# Comment joindre la box. Le jeton vient du secret Docker FREEBOX_APP_TOKEN,
+# monté sous /run/secrets/ et repris par le configtree déclaré plus haut.
+# Il s'obtient par appairage physique : scripts/freebox-pair.sh
+freebox:
+  base-url: ${FREEBOX_BASE_URL:http://mafreebox.freebox.fr}
+  api-version: ${FREEBOX_API_VERSION:v16}
+  app-id: fr.schultz.schub.portmanager
+  app-name: Schub Port Manager
+  app-version: 1.0.0
+  device-name: ${FREEBOX_DEVICE_NAME:dynamis}
+  app-token: ${FREEBOX_APP_TOKEN:}
+  # Encodage de la propriété dans le champ "comment" de la box. Toute règle ne le
+  # portant pas est manuelle et n'est jamais modifiée.
+  marker: "[schub]"
+  connect-timeout: 3s
+  read-timeout: 5s
