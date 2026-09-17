@@ -1,4 +1,4 @@
-package schultz.thomas.schub.connector.freebox.model.freebox;
+package schultz.thomas.schub.connector.freebox.data.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

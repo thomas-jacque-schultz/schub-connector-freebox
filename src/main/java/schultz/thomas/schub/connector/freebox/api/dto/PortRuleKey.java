@@ -1,4 +1,4 @@
-package schultz.thomas.schub.connector.freebox.model.portforwarding;
+package schultz.thomas.schub.connector.freebox.api.dto;
 
 /**
  * Identité d'une redirection côté WAN. Un routeur ne peut pas héberger deux règles

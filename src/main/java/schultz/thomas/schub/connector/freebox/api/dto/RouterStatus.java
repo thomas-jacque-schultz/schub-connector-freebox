@@ -1,4 +1,4 @@
-package schultz.thomas.schub.connector.freebox.controllers;
+package schultz.thomas.schub.connector.freebox.api.dto;
 
 /**
  * État du lien avec le routeur, pour diagnostiquer sans lire les logs.

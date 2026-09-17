@@ -1,4 +1,10 @@
-package schultz.thomas.schub.connector.freebox.controllers;
+package schultz.thomas.schub.connector.freebox.api.controller;
+
+import schultz.thomas.schub.connector.freebox.api.dto.PortRule;
+import schultz.thomas.schub.connector.freebox.api.dto.RouterStatus;
+import schultz.thomas.schub.connector.freebox.business.services.FreeboxRedirectionService;
+import schultz.thomas.schub.connector.freebox.config.FreeboxProperties;
+import schultz.thomas.schub.connector.freebox.data.model.FreeboxRedirection;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -10,10 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import schultz.thomas.schub.connector.freebox.business.services.FreeboxRedirectionService;
-import schultz.thomas.schub.connector.freebox.config.FreeboxProperties;
-import schultz.thomas.schub.connector.freebox.model.portforwarding.PortRule;
-
 import java.util.List;
 
 /**
