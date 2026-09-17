@@ -1,4 +1,6 @@
-package schultz.thomas.schub.connector.freebox.model.portforwarding;
+package schultz.thomas.schub.connector.freebox.api.dto;
+
+import schultz.thomas.schub.connector.freebox.data.model.FreeboxRedirection;
 
 import java.util.Objects;
 

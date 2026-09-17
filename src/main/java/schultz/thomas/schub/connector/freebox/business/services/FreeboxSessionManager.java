@@ -1,5 +1,10 @@
 package schultz.thomas.schub.connector.freebox.business.services;
 
+import schultz.thomas.schub.connector.freebox.business.exceptions.FreeboxException;
+import schultz.thomas.schub.connector.freebox.config.FreeboxProperties;
+import schultz.thomas.schub.connector.freebox.data.model.FreeboxResponse;
+import schultz.thomas.schub.connector.freebox.data.model.FreeboxSession;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,11 +13,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import schultz.thomas.schub.connector.freebox.business.exceptions.FreeboxException;
-import schultz.thomas.schub.connector.freebox.config.FreeboxProperties;
-import schultz.thomas.schub.connector.freebox.model.freebox.FreeboxResponse;
-import schultz.thomas.schub.connector.freebox.model.freebox.FreeboxSession;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;

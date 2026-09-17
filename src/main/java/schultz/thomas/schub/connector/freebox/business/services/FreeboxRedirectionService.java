@@ -1,5 +1,12 @@
 package schultz.thomas.schub.connector.freebox.business.services;
 
+import schultz.thomas.schub.connector.freebox.api.dto.PortRule;
+import schultz.thomas.schub.connector.freebox.api.dto.Protocol;
+import schultz.thomas.schub.connector.freebox.business.exceptions.FreeboxException;
+import schultz.thomas.schub.connector.freebox.config.FreeboxProperties;
+import schultz.thomas.schub.connector.freebox.data.model.FreeboxRedirection;
+import schultz.thomas.schub.connector.freebox.data.model.FreeboxResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,13 +15,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import schultz.thomas.schub.connector.freebox.business.exceptions.FreeboxException;
-import schultz.thomas.schub.connector.freebox.config.FreeboxProperties;
-import schultz.thomas.schub.connector.freebox.model.freebox.FreeboxRedirection;
-import schultz.thomas.schub.connector.freebox.model.freebox.FreeboxResponse;
-import schultz.thomas.schub.connector.freebox.model.portforwarding.PortRule;
-import schultz.thomas.schub.connector.freebox.model.portforwarding.Protocol;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
