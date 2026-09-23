@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
-#
 # Appairage de l'application "Schub Port Manager" auprès de la Freebox.
-#
 # À lancer une seule fois, depuis une machine du LAN, avec un accès physique à la box :
 # la validation se fait sur l'écran de la Freebox Server. Le jeton obtenu ne périme pas
 # et doit être stocké comme secret Docker (voir la fin du script).
-#
 #   ./freebox-pair.sh          appaire et affiche le jeton
 #   ./freebox-pair.sh --check  vérifie un jeton existant (FREEBOX_APP_TOKEN) et liste les redirections
-#
 set -euo pipefail
 
 BASE_URL="${FREEBOX_BASE_URL:-http://mafreebox.freebox.fr}"
@@ -21,14 +17,12 @@ for tool in curl jq openssl; do
     command -v "$tool" >/dev/null || { echo "Outil manquant : $tool" >&2; exit 1; }
 done
 
-# La Freebox annonce sa version d'API ; on en dérive le préfixe /api/vXX utilisé partout.
 api_prefix() {
     local major
     major="$(curl -fsS "${BASE_URL}/api_version" | jq -r '.api_version | split(".")[0]')"
     echo "${BASE_URL}/api/v${major}"
 }
 
-# Ouvre une session à partir d'un jeton d'appairage et renvoie le session_token.
 open_session() {
     local api="$1" token="$2" challenge password response
     challenge="$(curl -fsS "${api}/login/" | jq -r '.result.challenge')"

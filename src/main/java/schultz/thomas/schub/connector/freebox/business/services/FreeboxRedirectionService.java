@@ -19,16 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-/**
- * Traduit les redirections de la Freebox dans le vocabulaire du domaine, et réciproquement.
- *
- * <p>Seule classe à connaître à la fois {@link PortRule} et le format de l'API Freebox : elle
- * porte l'encodage du marqueur de propriété dans le champ {@code comment} de la box. Elle ne
- * sait pas <em>pourquoi</em> une règle doit exister — cette raison vit dans le cœur.</p>
- *
- * <p>Rejoue une fois chaque appel après réouverture de session lorsque la box répond
- * "auth_required", le jeton de session expirant silencieusement après inactivité.</p>
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,16 +35,10 @@ public class FreeboxRedirectionService {
 
     private final FreeboxProperties freeboxProperties;
 
-    /**
-     * Motif empêchant d'utiliser le routeur (non appairé, non configuré), ou {@code null}
-     * s'il est utilisable. Permet à l'appelant de se taire proprement sans connaître les
-     * conditions propres à chaque routeur.
-     */
     public String unavailableReason() {
         return freeboxProperties.isPaired() ? null : "aucun jeton d'appairage Freebox configuré";
     }
 
-    /** Toutes les redirections du routeur, les manuelles comprises (leur {@code owner} est null). */
     public List<PortRule> listRules() {
         FreeboxResponse<List<FreeboxRedirection>> response = authenticated(token -> restClient.get()
                 .uri("/fw/redir/")
@@ -73,7 +57,6 @@ public class FreeboxRedirectionService {
                 .toList();
     }
 
-    /** Crée la règle et la rend telle que la box l'a enregistrée, {@code providerId} compris. */
     public PortRule createRule(PortRule rule) {
         FreeboxRedirection payload = new FreeboxRedirection(
                 null,
@@ -100,9 +83,7 @@ public class FreeboxRedirectionService {
         return created(response, rule);
     }
 
-    /** Met à jour la règle désignée par {@code providerId} et rend son état après écriture. */
     public PortRule updateRule(String providerId, PortRule rule) {
-        // Seuls les champs modifiables sont envoyés : la box conserve le reste de la règle.
         FreeboxRedirection patch = new FreeboxRedirection(
                 null,
                 rule.open(),
@@ -126,7 +107,6 @@ public class FreeboxRedirectionService {
         return created(response, rule.withProviderId(providerId));
     }
 
-    /** Supprime la règle désignée par {@code providerId}. */
     public void deleteRule(String providerId) {
         int id = parseProviderId(providerId);
         authenticated(token -> restClient.delete()
@@ -138,9 +118,6 @@ public class FreeboxRedirectionService {
                 .body(new ParameterizedTypeReference<FreeboxResponse<Object>>() {}));
     }
 
-    // --- traduction --------------------------------------------------------
-
-    /** L'état rendu par la box après écriture, ou à défaut la règle envoyée. */
     private PortRule created(FreeboxResponse<FreeboxRedirection> response, PortRule fallback) {
         if (response.result() == null) {
             return fallback;
@@ -148,7 +125,6 @@ public class FreeboxRedirectionService {
         return toDomain(response.result()).orElse(fallback);
     }
 
-    /** Vide lorsque la box décrit une règle qu'on ne sait pas représenter (protocole inconnu). */
     private Optional<PortRule> toDomain(FreeboxRedirection redirection) {
         Optional<Protocol> protocol = Protocol.parse(redirection.ipProto());
         if (protocol.isEmpty() || redirection.wanPortStart() == null) {
@@ -176,7 +152,6 @@ public class FreeboxRedirectionService {
         return freeboxProperties.getMarker() + " " + owner;
     }
 
-    /** Null pour une redirection créée à la main : elle ne porte pas notre marqueur. */
     private String toOwner(String comment) {
         String marker = freeboxProperties.getMarker();
         if (comment == null || !comment.startsWith(marker)) {
@@ -197,12 +172,6 @@ public class FreeboxRedirectionService {
         }
     }
 
-    // --- session -----------------------------------------------------------
-
-    /**
-     * Exécute l'appel avec le jeton de session courant ; si la box répond "auth_required",
-     * invalide la session et rejoue l'appel une seule fois.
-     */
     private <T> FreeboxResponse<T> authenticated(Function<String, FreeboxResponse<T>> call) {
         FreeboxResponse<T> response = call.apply(sessionManager.currentSessionToken());
 

@@ -18,16 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
-/**
- * API interne du connecteur : les redirections du routeur, exprimées en {@link PortRule}.
- *
- * <p>{@code FreeboxRedirection} ne franchit jamais cette frontière. Un appelant qui lirait du
- * vocabulaire Freebox ici serait couplé à la marque du routeur, ce que toute la découpe cherche
- * précisément à éviter.</p>
- *
- * <p>Protégé comme le reste du maillage par {@code X-Internal-Secret} ; seul
- * {@code GET /actuator/health} est ouvert.</p>
- */
+// Contrat en PortRule uniquement : FreeboxRedirection ne sort jamais du connecteur.
 @RestController
 @RequiredArgsConstructor
 public class RedirectionController {
@@ -36,7 +27,6 @@ public class RedirectionController {
 
     private final FreeboxProperties freeboxProperties;
 
-    /** Toutes les redirections portées par le routeur, les manuelles comprises. */
     @GetMapping("/redirections")
     public List<PortRule> list() {
         return redirectionService.listRules();
@@ -58,7 +48,6 @@ public class RedirectionController {
         return ResponseEntity.noContent().build();
     }
 
-    /** État du lien avec la box, sans rien écrire. */
     @GetMapping("/router/status")
     public RouterStatus status() {
         return new RouterStatus(
