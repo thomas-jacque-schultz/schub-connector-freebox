@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
-#
 # Instantané des redirections de ports de la Freebox.
-#
-# Sert de filet : si une redirection disparaît, c'est ce fichier qui dit ce qu'elle était.
-# Écrit deux formats côte à côte — le JSON brut de la box (complet, avec les identifiants,
-# rejouable) et une table lisible pour comparer d'un coup d'œil.
-#
 #   FREEBOX_APP_TOKEN=... ./freebox-dump-redirections.sh [dossier]
-#
-# Le dossier par défaut est le répertoire courant. Ne jamais committer le résultat dans un
-# repo public : il expose la liste des ports ouverts et les IP internes.
+# Ne jamais committer le résultat dans un repo public : il expose les ports ouverts et les IP internes.
 set -euo pipefail
 
 BASE_URL="${FREEBOX_BASE_URL:-http://mafreebox.freebox.fr}"

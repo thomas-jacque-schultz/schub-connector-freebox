@@ -3,11 +3,7 @@ package schultz.thomas.schub.connector.freebox.data.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Une redirection de port telle que l'expose /api/vXX/fw/redir/.
- * Les null sont omis à la sérialisation : la Freebox refuse un POST de création
- * portant un "id", et complète elle-même les champs absents.
- */
+// NON_NULL : la box refuse un POST de création portant un "id".
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record FreeboxRedirection(
         Integer id,

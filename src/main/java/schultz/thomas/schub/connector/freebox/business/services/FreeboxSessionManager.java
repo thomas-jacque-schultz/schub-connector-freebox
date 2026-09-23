@@ -20,17 +20,8 @@ import java.security.GeneralSecurityException;
 import java.util.HexFormat;
 import java.util.Map;
 
-/**
- * Détient la session applicative auprès de la Freebox.
- *
- * <p>Ce n'est pas un service métier : c'est un détail du client HTTP, que seul
- * {@link FreeboxRedirectionService} utilise et qui ne franchit jamais la frontière HTTP.</p>
- *
- * <p>Protocole : GET /login/ renvoie un challenge aléatoire ; on prouve la possession du jeton
- * d'appairage en renvoyant HMAC-SHA1(challenge) clé par ce jeton. La box répond un session_token
- * à placer dans X-Fbx-App-Auth. Ce jeton expire après quelques dizaines de minutes d'inactivité,
- * d'où le cache invalidable et le rejeu automatique côté client.</p>
- */
+// Protocole : GET /login/ → challenge ; session = HMAC-SHA1(challenge, app_token) → session_token
+// à poser dans X-Fbx-App-Auth. Expire après quelques dizaines de minutes d'inactivité.
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -43,13 +34,8 @@ class FreeboxSessionManager {
 
     private final FreeboxProperties properties;
 
-    /** Jeton de session courant, null tant qu'aucune session n'est ouverte ou après invalidation. */
     private volatile String sessionToken;
 
-    /**
-     * Retourne un jeton de session valide, en ouvrant une session si nécessaire.
-     * Deux appels concurrents ouvriront au pire deux sessions, ce qui est sans effet côté box.
-     */
     String currentSessionToken() {
         String cached = sessionToken;
         if (cached != null) {
@@ -63,7 +49,6 @@ class FreeboxSessionManager {
         }
     }
 
-    /** Oublie la session courante ; le prochain appel en ouvrira une nouvelle. */
     void invalidate() {
         sessionToken = null;
     }

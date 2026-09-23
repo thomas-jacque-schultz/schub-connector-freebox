@@ -7,13 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-/**
- * Traduit un échec de dialogue avec la box en réponse HTTP honnête.
- *
- * <p>502 plutôt que 500 : la panne est en amont, chez le routeur, et l'appelant doit pouvoir
- * distinguer « le connecteur est cassé » de « la box ne répond pas » — le cœur réessaiera de
- * lui-même au prochain passage du réconciliateur.</p>
- */
 @Slf4j
 @RestControllerAdvice
 public class FreeboxExceptionHandler {
