@@ -10,6 +10,9 @@ import schultz.thomas.schub.connector.freebox.data.model.FreeboxResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -27,6 +30,7 @@ public class FreeboxRedirectionService {
     private static final String AUTH_HEADER = "X-Fbx-App-Auth";
     private static final String AUTH_REQUIRED = "auth_required";
     private static final String WILDCARD_SOURCE_IP = "0.0.0.0";
+    private static final ParameterizedTypeReference<FreeboxResponse<JsonNode>> ENVELOPE = new ParameterizedTypeReference<>() {};
 
     @Qualifier("freeboxRestClient")
     private final RestClient restClient;
@@ -35,23 +39,22 @@ public class FreeboxRedirectionService {
 
     private final FreeboxProperties freeboxProperties;
 
+    private final ObjectMapper objectMapper;
+
     public String unavailableReason() {
         return freeboxProperties.isPaired() ? null : "aucun jeton d'appairage Freebox configuré";
     }
 
     public List<PortRule> listRules() {
-        FreeboxResponse<List<FreeboxRedirection>> response = authenticated(token -> restClient.get()
+        List<FreeboxRedirection> redirections = authenticated(token -> restClient.get()
                 .uri("/fw/redir/")
                 .accept(MediaType.APPLICATION_JSON)
-                .header(AUTH_HEADER, token)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, clientResponse) -> { /* enveloppe JSON lue ci-dessous */ })
-                .body(new ParameterizedTypeReference<>() {}));
+                .header(AUTH_HEADER, token), new TypeReference<>() {});
 
-        if (response.result() == null) {
+        if (redirections == null) {
             return List.of();
         }
-        return response.result().stream()
+        return redirections.stream()
                 .map(this::toDomain)
                 .flatMap(Optional::stream)
                 .toList();
@@ -71,16 +74,13 @@ public class FreeboxRedirectionService {
                 null
         );
 
-        FreeboxResponse<FreeboxRedirection> response = authenticated(token -> restClient.post()
+        FreeboxRedirection created = authenticated(token -> restClient.post()
                 .uri("/fw/redir/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(AUTH_HEADER, token)
-                .body(payload)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, clientResponse) -> { /* enveloppe JSON lue ci-dessous */ })
-                .body(new ParameterizedTypeReference<FreeboxResponse<FreeboxRedirection>>() {}));
+                .body(payload), new TypeReference<>() {});
 
-        return created(response, rule);
+        return orFallback(created, rule);
     }
 
     public PortRule updateRule(String providerId, PortRule rule) {
@@ -95,16 +95,13 @@ public class FreeboxRedirectionService {
         );
 
         int id = parseProviderId(providerId);
-        FreeboxResponse<FreeboxRedirection> response = authenticated(token -> restClient.put()
+        FreeboxRedirection updated = authenticated(token -> restClient.put()
                 .uri("/fw/redir/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(AUTH_HEADER, token)
-                .body(patch)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, clientResponse) -> { /* enveloppe JSON lue ci-dessous */ })
-                .body(new ParameterizedTypeReference<FreeboxResponse<FreeboxRedirection>>() {}));
+                .body(patch), new TypeReference<>() {});
 
-        return created(response, rule.withProviderId(providerId));
+        return orFallback(updated, rule.withProviderId(providerId));
     }
 
     public void deleteRule(String providerId) {
@@ -112,17 +109,14 @@ public class FreeboxRedirectionService {
         authenticated(token -> restClient.delete()
                 .uri("/fw/redir/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
-                .header(AUTH_HEADER, token)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, clientResponse) -> { /* enveloppe JSON lue ci-dessous */ })
-                .body(new ParameterizedTypeReference<FreeboxResponse<Object>>() {}));
+                .header(AUTH_HEADER, token), new TypeReference<JsonNode>() {});
     }
 
-    private PortRule created(FreeboxResponse<FreeboxRedirection> response, PortRule fallback) {
-        if (response.result() == null) {
+    private PortRule orFallback(FreeboxRedirection redirection, PortRule fallback) {
+        if (redirection == null) {
             return fallback;
         }
-        return toDomain(response.result()).orElse(fallback);
+        return toDomain(redirection).orElse(fallback);
     }
 
     private Optional<PortRule> toDomain(FreeboxRedirection redirection) {
@@ -172,8 +166,14 @@ public class FreeboxRedirectionService {
         }
     }
 
-    private <T> FreeboxResponse<T> authenticated(Function<String, FreeboxResponse<T>> call) {
-        FreeboxResponse<T> response = call.apply(sessionManager.currentSessionToken());
+    // result n'est converti qu'après lecture de success : sur auth_required, la box y met un objet (challenge), quel que soit le type attendu.
+    private <T> T authenticated(Function<String, RestClient.RequestHeadersSpec<?>> request, TypeReference<T> type) {
+        Function<String, FreeboxResponse<JsonNode>> call = token -> request.apply(token)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, clientResponse) -> { })
+                .body(ENVELOPE);
+
+        FreeboxResponse<JsonNode> response = call.apply(sessionManager.currentSessionToken());
 
         if (response != null && !response.success() && AUTH_REQUIRED.equals(response.errorCode())) {
             log.info("Session Freebox expirée, réouverture");
@@ -185,6 +185,7 @@ public class FreeboxRedirectionService {
             throw new FreeboxException("Appel Freebox en échec: "
                     + (response != null ? response.errorCode() + " / " + response.msg() : "réponse vide"));
         }
-        return response;
+        JsonNode result = response.result();
+        return result == null || result.isNull() ? null : objectMapper.convertValue(result, type);
     }
 }
