@@ -25,3 +25,7 @@ mvn spring-boot:run
 
 En dev, le service est monté par `schub-infra-docker/Hosting/Tool/CodeInfrastructure/docker-compose.dev.yml`
 avec les sources en volume : `task dev` depuis ce dossier, puis `task logs -- schub-connector-freebox`.
+
+## Licence
+
+[Apache-2.0](LICENSE).
